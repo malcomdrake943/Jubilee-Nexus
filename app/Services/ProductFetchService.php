@@ -36,6 +36,11 @@ class ProductFetchService
      */
     public function fetch(string $url): ?array
     {
+        $url = trim($url);
+        if (! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
+            $url = 'https://' . $url;
+        }
+
         $cacheKey = 'product_fetch_' . md5($url);
         $cacheTtl = (int) config('app.product_fetch_cache_ttl', 3600);
 
