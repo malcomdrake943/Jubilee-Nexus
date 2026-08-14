@@ -46,7 +46,7 @@ class ProductFetchService
         $platform = $this->detectPlatform($url);
 
         // ── 1. If Amazon & Rainforest API Key exists, try it ────────────────────
-        if ($platform === 'amazon' && $apiKey = env('RAINFOREST_API_KEY')) {
+        if ($platform === 'amazon' && ($apiKey = config('services.rainforest.key') ?? env('RAINFOREST_API_KEY'))) {
             $asin = $this->extractAsin($url);
             $domain = $this->extractAmazonDomain($url);
             if ($asin) {
@@ -87,7 +87,7 @@ class ProductFetchService
         }
 
         // ── 2. Route through ScraperAPI proxy if key exists ─────────────────────
-        if ($scraperKey = env('SCRAPER_API_KEY')) {
+        if ($scraperKey = config('services.scraperapi.key') ?? env('SCRAPER_API_KEY')) {
             try {
                 $proxyUrl = "http://api.scraperapi.com/?api_key={$scraperKey}&url=" . urlencode($url);
                 $response = $this->http->get($proxyUrl);

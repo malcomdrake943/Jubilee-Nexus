@@ -151,7 +151,7 @@
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <a href="{{ route('order.index') }}" class="flex items-center gap-3 group">
                 <img src="/images/logo.jpg" alt="Jubilee Direct Logo" class="w-10 h-10 object-contain rounded-xl bg-white p-1 border border-white/20 shadow-sm">
-                <span class="text-white font-display font-bold text-xl tracking-tight">Jubilee<span class="gradient-text">Direct</span></span>
+                <span class="text-white font-display font-bold text-xl tracking-tight">Jubilee <span class="gradient-text">Direct</span></span>
             </a>
             <div class="flex items-center gap-4">
                 <a href="{{ route('order.index') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Order</a>
