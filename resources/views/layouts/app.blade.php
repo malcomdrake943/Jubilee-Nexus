@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Jubilee Nexus Group') – Global Purchase Forwarding</title>
-    <meta name="description" content="@yield('meta_description', 'Jubilee Nexus Group — buy from Amazon, eBay and more. We purchase and ship internationally on your behalf.')">
+    <title>@yield('title', 'Jubilee Direct') – Global Purchase Forwarding</title>
+    <meta name="description" content="@yield('meta_description', 'Jubilee Direct — buy from Amazon, BestBuy and more. We purchase and ship internationally on your behalf.')">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -150,8 +150,8 @@
     <nav class="fixed top-0 left-0 right-0 z-50 py-4 px-6">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <a href="{{ route('order.index') }}" class="flex items-center gap-3 group">
-                <img src="/images/logo.jpg" alt="Jubilee Nexus Logo" class="w-10 h-10 object-contain rounded-xl bg-white p-1 border border-white/20 shadow-sm">
-                <span class="text-white font-display font-bold text-xl tracking-tight">Jubilee<span class="gradient-text">Nexus</span></span>
+                <img src="/images/logo.jpg" alt="Jubilee Direct Logo" class="w-10 h-10 object-contain rounded-xl bg-white p-1 border border-white/20 shadow-sm">
+                <span class="text-white font-display font-bold text-xl tracking-tight">Jubilee<span class="gradient-text">Direct</span></span>
             </a>
             <div class="flex items-center gap-4">
                 <a href="{{ route('order.index') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Order</a>
@@ -200,8 +200,7 @@
     <!-- Footer -->
     <footer class="py-8 px-6 border-t border-white/10">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            <p class="text-white/40 text-sm">© {{ date('Y') }} Jubilee Nexus Group. All rights reserved.</p>
-            <p class="text-white/40 text-xs">Payments secured by <span class="text-white/60">Stripe</span></p>
+            <p class="text-white/40 text-sm">© {{ date('Y') }} Jubilee Direct. All rights reserved.</p>
         </div>
     </footer>
 </body>

@@ -17,7 +17,7 @@
             <div
                 class="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-2 text-white/70 text-xs font-medium mb-6 border border-white/20">
                 <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                Secure payments via Stripe
+                Secure Payments
             </div>
             <h1 class="text-4xl md:text-5xl font-display font-extrabold text-white leading-tight mb-4">
                 Shop Anywhere.<br><span class="gradient-text">Ship Everywhere.</span>
@@ -616,7 +616,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
-                            Powered by Stripe
                         </div>
                     </div>
 
@@ -667,7 +666,7 @@
             <div class="glass rounded-2xl p-5 text-center">
                 <div class="text-2xl mb-2">🔒</div>
                 <p class="text-white font-semibold text-sm">Secure Payment</p>
-                <p class="text-white/50 text-xs mt-0.5">Protected by Stripe</p>
+                <p class="text-white/50 text-xs mt-0.5">Multiple Secure Payment Options</p>
             </div>
         </div>
 

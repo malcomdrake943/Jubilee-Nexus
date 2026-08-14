@@ -141,7 +141,7 @@ class OrderController extends Controller
                     'enabled' => true,
                     'allow_redirects' => 'never',
                 ],
-                'description'               => "Jubilee Nexus Group order purchase",
+                'description'               => "Jubilee Direct order purchase",
                 'receipt_email'             => $data['customer_email'],
                 'metadata'                  => [
                     'customer_name'  => $data['customer_name'],
@@ -378,7 +378,7 @@ class OrderController extends Controller
                     'unit_amount'  => $totalCents,
                     'product_data' => [
                         'name'        => ($data['product_name'] ?? 'Product Purchase') . " (×{$data['quantity']})",
-                        'description' => "Jubilee Nexus Group forwarding service – Order includes product price + service fees",
+                        'description' => "Jubilee Direct forwarding service – Order includes product price + service fees",
                         'images'      => array_filter([$data['product_image_url'] ?? null]),
                     ],
                 ],

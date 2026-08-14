@@ -117,7 +117,7 @@ class OrderResource extends Resource
                     ->colors(['primary' => 'amazon', 'warning' => 'ebay', 'gray' => 'other']),
                 Tables\Columns\BadgeColumn::make('size_tier'),
                 Tables\Columns\TextColumn::make('total_charged')
-                    ->money('usd')
+                    ->formatStateUsing(fn ($state) => $state !== null ? '$' . number_format((float) $state, 2) : '-')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Track Order ' . $order->order_number)
-@section('meta_description', 'Track your Jubilee Nexus Group order ' . $order->order_number . '.')
+@section('meta_description', 'Track your Jubilee Direct order ' . $order->order_number . '.')
 
 @section('content')
 <div class="max-w-2xl mx-auto px-4">
