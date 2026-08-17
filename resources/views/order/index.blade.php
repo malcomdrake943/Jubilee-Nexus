@@ -715,9 +715,42 @@
                 </button>
             </div>
         </div>
+
+        @if (\App\Models\Setting::get('home_about_visible', 'true') === 'true')
+            <!-- Editable Main Page Section -->
+            <div class="mt-16 animate-fade-in">
+                <div class="glass-light rounded-3xl p-8 md:p-10 shadow-2xl text-left">
+                    <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-full px-3.5 py-1 text-brand-700 text-xs font-semibold mb-4">
+                        <span class="w-2 h-2 bg-brand-500 rounded-full"></span>
+                        About Jubilee Direct
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-display font-extrabold text-gray-900 mb-3">
+                        {{ \App\Models\Setting::get('home_about_title', 'Shopping Internationally Made Effortless') }}
+                    </h2>
+                    @if (\App\Models\Setting::get('home_about_subtitle'))
+                        <p class="text-brand-600 font-medium text-base mb-4">
+                            {{ \App\Models\Setting::get('home_about_subtitle') }}
+                        </p>
+                    @endif
+                    <div class="prose prose-sm md:prose-base text-gray-600 leading-relaxed mb-6 space-y-3">
+                        @foreach(explode("\n\n", \App\Models\Setting::get('home_about_content', 'Jubilee Direct bridges the gap between international retailers and global shoppers.')) as $paragraph)
+                            @if(trim($paragraph))
+                                <p>{{ trim($paragraph) }}</p>
+                            @endif
+                        @endforeach
+                    </div>
+                    <div class="pt-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-4">
+                        <a href="{{ route('about') }}" class="inline-flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold text-sm transition-colors">
+                            Learn more about our service & mission →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <script>
+
         function orderWizard(feeRules, sizeFeeRules, platforms) {
             return {
                 // Navigation

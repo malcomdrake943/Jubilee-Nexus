@@ -16,11 +16,12 @@ class SettingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static ?string $navigationLabel = 'Payment & Contact Settings';
+    protected static ?string $navigationLabel = 'All Site Settings';
 
     protected static ?string $navigationGroup = 'Settings';
 
     protected static ?int $navigationSort = 15;
+
 
     public static function form(Form $form): Form
     {
@@ -33,13 +34,52 @@ class SettingResource extends Resource
                 Forms\Components\TextInput::make('label')
                     ->label('Setting Name / Description')
                     ->required(),
-                Forms\Components\TextInput::make('value')
-                    ->label('Setting Value (Phone Number / Value)')
-                    ->required()
-                    ->helperText('For Mobile Money, enter the customer support phone number shown to users.'),
-                Forms\Components\TextInput::make('group')
+                Forms\Components\Select::make('group')
                     ->label('Group')
-                    ->default('general'),
+                    ->options([
+                        'general'    => 'General Settings',
+                        'payment'    => 'Payment Settings',
+                        'home_page'  => 'Main Page Section',
+                        'about_page' => 'About Us Page',
+                    ])
+                    ->default('general')
+                    ->required(),
+
+                // Dynamic Value Input based on key type
+                Forms\Components\Select::make('value')
+                    ->label('Setting Value (Visibility)')
+                    ->options([
+                        'true'  => 'Visible (Show on site)',
+                        'false' => 'Hidden (Hide from site)',
+                    ])
+                    ->visible(fn ($record) => $record && $record->key === 'home_about_visible')
+                    ->required(fn ($record) => $record && $record->key === 'home_about_visible'),
+
+                Forms\Components\Textarea::make('value')
+                    ->label('Setting Content / Value')
+                    ->rows(6)
+                    ->helperText('Multi-line content or description.')
+                    ->visible(fn ($record) => ! $record || (
+                        $record->key !== 'home_about_visible' &&
+                        (str_contains($record->key, 'content') ||
+                         str_contains($record->key, 'mission') ||
+                         str_contains($record->key, 'vision') ||
+                         str_contains($record->key, 'subtitle') ||
+                         str_contains($record->key, 'description'))
+                    ))
+                    ->required(fn ($record) => ! $record || $record->key !== 'home_about_visible'),
+
+                Forms\Components\TextInput::make('value')
+                    ->label('Setting Value')
+                    ->visible(fn ($record) => $record &&
+                        $record->key !== 'home_about_visible' &&
+                        ! str_contains($record->key, 'content') &&
+                        ! str_contains($record->key, 'mission') &&
+                        ! str_contains($record->key, 'vision') &&
+                        ! str_contains($record->key, 'subtitle') &&
+                        ! str_contains($record->key, 'description')
+                    )
+                    ->required(fn ($record) => $record && $record->key !== 'home_about_visible'),
             ]),
         ]);
     }
@@ -52,18 +92,38 @@ class SettingResource extends Resource
                     ->label('Setting Name')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('group')
+                    ->label('Group')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'payment' => 'warning',
+                        'home_page' => 'success',
+                        'about_page' => 'info',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('key')
                     ->label('Key')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('value')
                     ->label('Current Value')
+                    ->limit(60)
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Last Updated')
                     ->dateTime()
                     ->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('group')
+                    ->options([
+                        'general'    => 'General Settings',
+                        'payment'    => 'Payment Settings',
+                        'home_page'  => 'Main Page Section',
+                        'about_page' => 'About Us Page',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -82,3 +142,4 @@ class SettingResource extends Resource
         ];
     }
 }
+

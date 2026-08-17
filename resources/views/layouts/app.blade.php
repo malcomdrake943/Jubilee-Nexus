@@ -155,6 +155,7 @@
             </a>
             <div class="flex items-center gap-4">
                 <a href="{{ route('order.index') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Order</a>
+                <a href="{{ route('about') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">About Us</a>
                 <a href="#" onclick="document.getElementById('resend-modal').classList.remove('hidden')" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Track Order</a>
             </div>
         </div>
@@ -201,7 +202,13 @@
     <footer class="py-8 px-6 border-t border-white/10">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <p class="text-white/40 text-sm">© {{ date('Y') }} Jubilee Direct. All rights reserved.</p>
+            <div class="flex items-center gap-6">
+                <a href="{{ route('order.index') }}" class="text-white/40 hover:text-white/80 text-sm transition-colors">Place Order</a>
+                <a href="{{ route('about') }}" class="text-white/40 hover:text-white/80 text-sm transition-colors">About Us</a>
+                <a href="#" onclick="document.getElementById('resend-modal').classList.remove('hidden')" class="text-white/40 hover:text-white/80 text-sm transition-colors">Track Order</a>
+            </div>
         </div>
     </footer>
+
 </body>
 </html>
