@@ -137,11 +137,15 @@ class ProductFetchService
     /**
      * Detect platform from URL.
      */
+    /**
+     * Detect platform from URL.
+     */
     public function detectPlatform(string $url): string
     {
         $host = strtolower(parse_url($url, PHP_URL_HOST) ?? '');
-        if (str_contains($host, 'amazon')) return 'amazon';
-        if (str_contains($host, 'ebay'))   return 'ebay';
+        if (str_contains($host, 'amazon'))  return 'amazon';
+        if (str_contains($host, 'ebay'))    return 'ebay';
+        if (str_contains($host, 'walmart')) return 'walmart';
         return 'other';
     }
 
@@ -198,10 +202,16 @@ class ProductFetchService
 
                         if (isset($data['offers'])) {
                             $offers = $data['offers'];
-                            if (isset($offers['price'])) {
-                                $price = (float) $offers['price'];
-                            } elseif (is_array($offers) && isset($offers[0]['price'])) {
-                                $price = (float) $offers[0]['price'];
+                            if (is_array($offers)) {
+                                if (isset($offers['price'])) {
+                                    $price = (float) $offers['price'];
+                                } elseif (isset($offers['lowPrice'])) {
+                                    $price = (float) $offers['lowPrice'];
+                                } elseif (isset($offers[0]['price'])) {
+                                    $price = (float) $offers[0]['price'];
+                                } elseif (isset($offers['offers'][0]['price'])) {
+                                    $price = (float) $offers['offers'][0]['price'];
+                                }
                             }
                         }
                         break;
@@ -212,7 +222,7 @@ class ProductFetchService
             }
         }
 
-        // ── 2. OG tags fallback ──────────────────────────────────────────────────
+        // ── 2. OG tags & General Meta Price Fallback ──────────────────────────────
         if (! $name && preg_match('/<meta[^>]+property=["\']og:title["\'][^>]+content=["\'](.*?)["\']/i', $html, $m)) {
             $name = html_entity_decode(trim($m[1]));
         }
@@ -221,6 +231,19 @@ class ProductFetchService
         }
         if (! $description && preg_match('/<meta[^>]+property=["\']og:description["\'][^>]+content=["\'](.*?)["\']/i', $html, $m)) {
             $description = Str::limit(html_entity_decode(trim($m[1])), 300);
+        }
+
+        // Meta price extraction fallbacks
+        if (! $price) {
+            if (preg_match('/<meta[^>]+property=["\']og:price:amount["\'][^>]+content=["\']\$?([0-9.,]+)["\']/i', $html, $m)) {
+                $price = (float) str_replace(',', '', $m[1]);
+            } elseif (preg_match('/<meta[^>]+property=["\']product:price:amount["\'][^>]+content=["\']\$?([0-9.,]+)["\']/i', $html, $m)) {
+                $price = (float) str_replace(',', '', $m[1]);
+            } elseif (preg_match('/<meta[^>]+name=["\']twitter:data1["\'][^>]+content=["\']\$?([0-9.,]+)["\']/i', $html, $m)) {
+                $price = (float) str_replace(',', '', $m[1]);
+            } elseif (preg_match('/itemprop=["\']price["\'][^>]*content=["\']\$?([0-9.,]+)["\']/i', $html, $m)) {
+                $price = (float) str_replace(',', '', $m[1]);
+            }
         }
 
         // ── 3. Amazon-specific HTML Fallbacks (Very Robust) ──────────────────────
@@ -262,7 +285,6 @@ class ProductFetchService
             }
 
             // Image: eBay OG image is usually present and already fetched above.
-            // Fallback: first high-res image from carousel
             if (! $imageUrl) {
                 if (preg_match('/data-zoom-src=(https:\/\/i\.ebayimg\.com\/[^\s"\']+\.(?:jpg|webp))/i', $html, $m)) {
                     $imageUrl = $m[1];
@@ -277,12 +299,45 @@ class ProductFetchService
             }
         }
 
-        // ── 4. <title> last resort ───────────────────────────────────────────────
+        // ── 5. Walmart-specific HTML & JSON Fallbacks ───────────────────────────
+        if ($platform === 'walmart' || str_contains($url, 'walmart.com')) {
+            if (! $price) {
+                if (preg_match('/"currentPrice"\s*:\s*\{\s*"price"\s*:\s*([\d.]+)/i', $html, $m)) {
+                    $price = (float) $m[1];
+                } elseif (preg_match('/"priceInfo"\s*:\s*\{[^}]*"currentPrice"\s*:\s*\{[^}]*"price"\s*:\s*([\d.]+)/i', $html, $m)) {
+                    $price = (float) $m[1];
+                } elseif (preg_match('/"price"\s*:\s*([\d.]+)\s*,\s*"priceString"/i', $html, $m)) {
+                    $price = (float) $m[1];
+                } elseif (preg_match('/itemprop=["\']price["\'][^>]*>\s*\$?([0-9.,]+)/i', $html, $m)) {
+                    $price = (float) str_replace(',', '', $m[1]);
+                } elseif (preg_match('/aria-label=["\']current price \$([0-9.,]+)["\']/i', $html, $m)) {
+                    $price = (float) str_replace(',', '', $m[1]);
+                } elseif (preg_match('/data-seo-id=["\']hero-price["\'][^>]*>.*?\$([0-9.,]+)/is', $html, $m)) {
+                    $price = (float) str_replace(',', '', $m[1]);
+                } elseif (preg_match('/<span[^>]*class=["\'][^"\']*price-characteristic[^"\']*["\'][^>]*>([0-9]+)<\/span>.*?<span[^>]*class=["\'][^"\']*price-mantissa[^"\']*["\'][^>]*>([0-9]+)<\/span>/is', $html, $m)) {
+                    $price = (float) ($m[1] . '.' . $m[2]);
+                } elseif (preg_match('/\$([0-9]{1,4}\.[0-9]{2})/', $html, $m)) {
+                    $price = (float) $m[1];
+                }
+            }
+
+            if (! $imageUrl) {
+                if (preg_match('/"hero"\s*:\s*\{\s*"url"\s*:\s*["\']([^"\']+)["\']/i', $html, $m)) {
+                    $imageUrl = $m[1];
+                }
+            }
+
+            if ($name) {
+                $name = preg_replace('/\s*[-–|]\s*Walmart\.com.*$/i', '', $name);
+            }
+        }
+
+        // ── 6. <title> last resort ───────────────────────────────────────────────
         if (! $name && preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $m)) {
             $name = html_entity_decode(trim(strip_tags($m[1])));
         }
 
-        // ── 5. meta description fallback ─────────────────────────────────────────
+        // ── 7. meta description fallback ─────────────────────────────────────────
         if (! $description && preg_match('/<meta[^>]+name=["\']description["\'][^>]+content=["\'](.*?)["\']/i', $html, $m)) {
             $description = Str::limit(html_entity_decode(trim($m[1])), 300);
         }
@@ -306,5 +361,6 @@ class ProductFetchService
             'platform'    => $platform,
         ];
     }
+
 }
 
