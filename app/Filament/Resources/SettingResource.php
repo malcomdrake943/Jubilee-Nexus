@@ -37,10 +37,11 @@ class SettingResource extends Resource
                 Forms\Components\Select::make('group')
                     ->label('Group')
                     ->options([
-                        'general'    => 'General Settings',
-                        'payment'    => 'Payment Settings',
-                        'home_page'  => 'Main Page Section',
-                        'about_page' => 'About Us Page',
+                        'general'      => 'General Settings',
+                        'payment'      => 'Payment Settings',
+                        'home_page'    => 'Main Page Section',
+                        'about_page'   => 'About Us Page',
+                        'contact_page' => 'Contact Us Page',
                     ])
                     ->default('general')
                     ->required(),
@@ -65,7 +66,11 @@ class SettingResource extends Resource
                          str_contains($record->key, 'mission') ||
                          str_contains($record->key, 'vision') ||
                          str_contains($record->key, 'subtitle') ||
-                         str_contains($record->key, 'description'))
+                         str_contains($record->key, 'description') ||
+                         str_contains($record->key, 'address') ||
+                         str_contains($record->key, 'hours') ||
+                         str_contains($record->key, 'shipping') ||
+                         str_contains($record->key, 'intro'))
                     ))
                     ->required(fn ($record) => ! $record || $record->key !== 'home_about_visible'),
 
@@ -77,7 +82,11 @@ class SettingResource extends Resource
                         ! str_contains($record->key, 'mission') &&
                         ! str_contains($record->key, 'vision') &&
                         ! str_contains($record->key, 'subtitle') &&
-                        ! str_contains($record->key, 'description')
+                        ! str_contains($record->key, 'description') &&
+                        ! str_contains($record->key, 'address') &&
+                        ! str_contains($record->key, 'hours') &&
+                        ! str_contains($record->key, 'shipping') &&
+                        ! str_contains($record->key, 'intro')
                     )
                     ->required(fn ($record) => $record && $record->key !== 'home_about_visible'),
             ]),
@@ -96,10 +105,11 @@ class SettingResource extends Resource
                     ->label('Group')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'payment' => 'warning',
-                        'home_page' => 'success',
-                        'about_page' => 'info',
-                        default => 'gray',
+                        'payment'      => 'warning',
+                        'home_page'    => 'success',
+                        'about_page'   => 'info',
+                        'contact_page' => 'primary',
+                        default        => 'gray',
                     })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('key')
@@ -119,10 +129,11 @@ class SettingResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('group')
                     ->options([
-                        'general'    => 'General Settings',
-                        'payment'    => 'Payment Settings',
-                        'home_page'  => 'Main Page Section',
-                        'about_page' => 'About Us Page',
+                        'general'      => 'General Settings',
+                        'payment'      => 'Payment Settings',
+                        'home_page'    => 'Main Page Section',
+                        'about_page'   => 'About Us Page',
+                        'contact_page' => 'Contact Us Page',
                     ]),
             ])
             ->actions([

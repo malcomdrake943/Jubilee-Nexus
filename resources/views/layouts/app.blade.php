@@ -156,6 +156,7 @@
             <div class="flex items-center gap-4">
                 <a href="{{ route('order.index') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Order</a>
                 <a href="{{ route('about') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">About Us</a>
+                <a href="{{ route('contact') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Contact Us</a>
                 <a href="#" onclick="document.getElementById('resend-modal').classList.remove('hidden')" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Track Order</a>
             </div>
         </div>
@@ -205,6 +206,7 @@
             <div class="flex items-center gap-6">
                 <a href="{{ route('order.index') }}" class="text-white/40 hover:text-white/80 text-sm transition-colors">Place Order</a>
                 <a href="{{ route('about') }}" class="text-white/40 hover:text-white/80 text-sm transition-colors">About Us</a>
+                <a href="{{ route('contact') }}" class="text-white/40 hover:text-white/80 text-sm transition-colors">Contact Us</a>
                 <a href="#" onclick="document.getElementById('resend-modal').classList.remove('hidden')" class="text-white/40 hover:text-white/80 text-sm transition-colors">Track Order</a>
             </div>
         </div>

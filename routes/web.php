@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
 // ── Public Pages ──────────────────────────────────────────────────────────────
 Route::get('/about', [AboutController::class, 'index'])->name('about');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
 // ── Redirect root to order form ──────────────────────────────────────────────
 Route::get('/', fn () => redirect()->route('order.index'));

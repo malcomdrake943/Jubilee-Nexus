@@ -218,9 +218,9 @@
                             class="input-field w-full px-4 py-3.5 rounded-xl text-gray-800 text-sm">
                     </div>
 
-                    <!-- Price, Qty, Size Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div class="md:col-span-1">
+                    <!-- Price, Qty, Size, Weight Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+                        <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Price (USD) <span
                                     class="text-red-500">*</span></label>
                             <div class="relative">
@@ -253,6 +253,57 @@
                                 <option value="oversized">🏗️ Oversized (quote)</option>
                             </select>
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Est. Weight <span
+                                    class="text-gray-400 font-normal">(kg)</span></label>
+                            <input type="number" x-model="productWeight" min="0.01" step="0.1" placeholder="e.g. 1.5"
+                                class="input-field w-full px-4 py-3.5 rounded-xl text-gray-800 text-sm">
+                        </div>
+                    </div>
+
+                    <!-- Shipping Speed Selection -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Preferred Shipping Method <span class="text-red-500">*</span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <!-- Express Air -->
+                            <div class="relative p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200"
+                                :class="shippingMethod === 'express_air' ? 'bg-amber-50/80 border-amber-500 ring-2 ring-amber-400/20' : 'bg-white/60 border-gray-200 hover:border-amber-300'"
+                                @click="shippingMethod = 'express_air'">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-bold text-gray-900 flex items-center gap-1.5">⚡ Express Air</span>
+                                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Fastest</span>
+                                </div>
+                                <p class="text-amber-700 font-bold text-xs">3–7 Days</p>
+                                <p class="text-[11px] text-gray-500 mt-1">Quote Calculated After Link & Weight Submission</p>
+                            </div>
+
+                            <!-- Standard Air -->
+                            <div class="relative p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200"
+                                :class="shippingMethod === 'standard_air' ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-400/20' : 'bg-white/60 border-gray-200 hover:border-blue-300'"
+                                @click="shippingMethod = 'standard_air'">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-bold text-gray-900 flex items-center gap-1.5">✈️ Standard Air</span>
+                                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">Popular</span>
+                                </div>
+                                <p class="text-blue-700 font-bold text-xs">7–14 Days</p>
+                                <p class="text-[11px] text-gray-500 mt-1">Quote Calculated After Link & Weight Submission</p>
+                            </div>
+
+                            <!-- Sea Freight -->
+                            <div class="relative p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200"
+                                :class="shippingMethod === 'sea_freight' ? 'bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-400/20' : 'bg-white/60 border-gray-200 hover:border-emerald-300'"
+                                @click="shippingMethod = 'sea_freight'">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-bold text-gray-900 flex items-center gap-1.5">🚢 Sea Freight</span>
+                                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Best Value</span>
+                                </div>
+                                <p class="text-emerald-700 font-bold text-xs">4–8 Weeks</p>
+                                <p class="text-[11px] text-gray-500 mt-1">Quote Calculated After Link & Weight Submission</p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Live Fee Breakdown -->
@@ -280,13 +331,18 @@
                                 <span>Handling fee (<span x-text="sizeTier"></span>)</span>
                                 <span>$<span x-text="computedSizeFee.toFixed(2)"></span></span>
                             </div>
+                            <div class="flex justify-between text-xs text-brand-700 bg-brand-50/70 p-2 rounded-lg border border-brand-100">
+                                <span>Shipping: <strong x-text="shippingMethod === 'express_air' ? '⚡ Express Air (3–7 Days)' : shippingMethod === 'sea_freight' ? '🚢 Sea Freight (4–8 Weeks)' : '✈️ Standard Air (7–14 Days)'"></strong></span>
+                                <span class="font-semibold">Quote Required</span>
+                            </div>
                             <div class="border-t border-brand-200 pt-2 mt-2 flex justify-between">
-                                <span class="font-bold text-gray-900">Total</span>
+                                <span class="font-bold text-gray-900">Total (Procurement + Service)</span>
                                 <span class="font-bold text-brand-700 text-lg">$<span
                                         x-text="computedTotal.toFixed(2)"></span></span>
                             </div>
-                            <p class="text-xs text-gray-400 mt-1">* Final price subject to reconciliation after actual
-                                purchase</p>
+                            <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                                ℹ️ Final shipping charge will be calculated by our system after your product link and weight are submitted and verified.
+                            </p>
                         </div>
                     </div>
 
@@ -716,6 +772,77 @@
             </div>
         </div>
 
+        <!-- ══ International Shipping Options Showcase ═════════════════════════ -->
+        <div class="mt-16 animate-fade-in">
+            <div class="glass-light rounded-3xl p-8 md:p-10 shadow-2xl text-left">
+                <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-full px-3.5 py-1 text-brand-700 text-xs font-semibold mb-4">
+                    <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
+                    Flexible Delivery Options
+                </div>
+                <h2 class="text-2xl md:text-3xl font-display font-extrabold text-gray-900 mb-3">
+                    International Shipping Options & Transit Speeds
+                </h2>
+                <p class="text-gray-600 text-sm md:text-base leading-relaxed mb-8">
+                    Choose the shipping speed that fits your schedule and budget. Our system calculates the exact final shipping charge once you submit your product link and package weight.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Express Air -->
+                    <div class="bg-white/80 rounded-2xl p-6 border border-brand-100 hover:border-amber-400 hover:shadow-lg transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-3xl">⚡</span>
+                            <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold uppercase">Fastest</span>
+                        </div>
+                        <h3 class="font-display font-bold text-gray-900 text-lg mb-1">Express Air</h3>
+                        <p class="text-amber-600 font-extrabold text-sm mb-2">3–7 Days</p>
+                        <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+                            Priority expedited air courier for urgent packages and fast doorstep delivery.
+                        </p>
+                        <span class="inline-block px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold">
+                            Quote Required
+                        </span>
+                    </div>
+
+                    <!-- Standard Air -->
+                    <div class="bg-white/80 rounded-2xl p-6 border border-brand-100 hover:border-blue-400 hover:shadow-lg transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-3xl">✈️</span>
+                            <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold uppercase">Popular</span>
+                        </div>
+                        <h3 class="font-display font-bold text-gray-900 text-lg mb-1">Standard Air</h3>
+                        <p class="text-blue-600 font-extrabold text-sm mb-2">7–14 Days</p>
+                        <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+                            Reliable and economical international air transport balancing speed and cost.
+                        </p>
+                        <span class="inline-block px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold">
+                            Quote Required
+                        </span>
+                    </div>
+
+                    <!-- Sea Freight -->
+                    <div class="bg-white/80 rounded-2xl p-6 border border-brand-100 hover:border-emerald-400 hover:shadow-lg transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-3xl">🚢</span>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase">Best Value</span>
+                        </div>
+                        <h3 class="font-display font-bold text-gray-900 text-lg mb-1">Sea Freight</h3>
+                        <p class="text-emerald-600 font-extrabold text-sm mb-2">4–8 Weeks</p>
+                        <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+                            Cost-effective ocean freight tailored for bulky, heavy, or commercial shipments.
+                        </p>
+                        <span class="inline-block px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold">
+                            Quote Required
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between flex-wrap gap-3">
+                    <span>💡 Paste any product URL above to get started with automatic price & fee estimation.</span>
+                    <a href="{{ route('contact') }}" class="font-bold text-brand-600 hover:text-brand-800 transition-colors">Need a custom freight quote? Contact us →</a>
+                </div>
+            </div>
+        </div>
+
         @if (\App\Models\Setting::get('home_about_visible', 'true') === 'true')
             <!-- Editable Main Page Section -->
             <div class="mt-16 animate-fade-in">
@@ -776,6 +903,8 @@
                 estimatedPrice: '',
                 quantity: 1,
                 sizeTier: '',
+                shippingMethod: 'standard_air',
+                productWeight: '',
                 fetchingProduct: false,
                 productFetchResult: null,
                 fetchJobKey: null,
@@ -1170,6 +1299,8 @@
                         product_image_url: this.productImageUrl || null,
                         estimated_product_price: this.estimatedPrice,
                         size_tier: this.sizeTier,
+                        shipping_method: this.shippingMethod,
+                        product_weight: this.productWeight ? parseFloat(this.productWeight) : null,
                         quantity: this.quantity,
                         customer_name: this.customerName,
                         customer_email: this.customerEmail,

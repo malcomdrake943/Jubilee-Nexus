@@ -96,6 +96,40 @@
         </div>
     </div>
 
+    <!-- Shipping Options Showcase -->
+    <div class="glass-light rounded-3xl p-8 md:p-10 mb-12 shadow-xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-200/70 pb-5">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 border border-brand-200 px-3 py-1 rounded-full">Flexible Speeds</span>
+                <h3 class="text-xl md:text-2xl font-display font-bold text-gray-900 mt-2">Available Shipping Methods</h3>
+                <p class="text-xs md:text-sm text-gray-500 mt-1">Our system calculates the final shipping rate based on your product link and package weight.</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white/80 p-5 rounded-2xl border border-brand-100">
+                <div class="text-2xl mb-2">⚡</div>
+                <h4 class="font-bold text-gray-900 text-sm">Express Air</h4>
+                <p class="text-amber-600 font-extrabold text-xs mb-1.5">3–7 Days</p>
+                <p class="text-xs text-gray-500 mb-3">Expedited courier delivery for urgent purchases.</p>
+                <span class="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 font-semibold text-gray-700">Quote Required</span>
+            </div>
+            <div class="bg-white/80 p-5 rounded-2xl border border-brand-100">
+                <div class="text-2xl mb-2">✈️</div>
+                <h4 class="font-bold text-gray-900 text-sm">Standard Air</h4>
+                <p class="text-blue-600 font-extrabold text-xs mb-1.5">7–14 Days</p>
+                <p class="text-xs text-gray-500 mb-3">Reliable global air freight balancing speed and economy.</p>
+                <span class="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 font-semibold text-gray-700">Quote Required</span>
+            </div>
+            <div class="bg-white/80 p-5 rounded-2xl border border-brand-100">
+                <div class="text-2xl mb-2">🚢</div>
+                <h4 class="font-bold text-gray-900 text-sm">Sea Freight</h4>
+                <p class="text-emerald-600 font-extrabold text-xs mb-1.5">4–8 Weeks</p>
+                <p class="text-xs text-gray-500 mb-3">Economical ocean container freight for bulk & heavy cargo.</p>
+                <span class="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 font-semibold text-gray-700">Quote Required</span>
+            </div>
+        </div>
+    </div>
+
     <!-- CTA Section -->
     <div class="glass p-8 md:p-10 rounded-3xl border border-white/20 text-center">
         <h3 class="text-2xl font-display font-bold text-white mb-2">Ready to Shop Overseas?</h3>
