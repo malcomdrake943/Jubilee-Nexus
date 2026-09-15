@@ -267,44 +267,7 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             Preferred Shipping Method <span class="text-red-500">*</span>
                         </label>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <!-- Express Air -->
-                            <div class="relative p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200"
-                                :class="shippingMethod === 'express_air' ? 'bg-amber-50/80 border-amber-500 ring-2 ring-amber-400/20' : 'bg-white/60 border-gray-200 hover:border-amber-300'"
-                                @click="shippingMethod = 'express_air'">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-sm font-bold text-gray-900 flex items-center gap-1.5">⚡ Express Air</span>
-                                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Fastest</span>
-                                </div>
-                                <p class="text-amber-700 font-bold text-xs">3–7 Days</p>
-                                <p class="text-[11px] text-gray-500 mt-1">Quote Calculated After Link & Weight Submission</p>
-                            </div>
-
-                            <!-- Standard Air -->
-                            <div class="relative p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200"
-                                :class="shippingMethod === 'standard_air' ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-400/20' : 'bg-white/60 border-gray-200 hover:border-blue-300'"
-                                @click="shippingMethod = 'standard_air'">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-sm font-bold text-gray-900 flex items-center gap-1.5">✈️ Standard Air</span>
-                                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">Popular</span>
-                                </div>
-                                <p class="text-blue-700 font-bold text-xs">7–14 Days</p>
-                                <p class="text-[11px] text-gray-500 mt-1">Quote Calculated After Link & Weight Submission</p>
-                            </div>
-
-                            <!-- Sea Freight -->
-                            <div class="relative p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200"
-                                :class="shippingMethod === 'sea_freight' ? 'bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-400/20' : 'bg-white/60 border-gray-200 hover:border-emerald-300'"
-                                @click="shippingMethod = 'sea_freight'">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-sm font-bold text-gray-900 flex items-center gap-1.5">🚢 Sea Freight</span>
-                                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Best Value</span>
-                                </div>
-                                <p class="text-emerald-700 font-bold text-xs">4–8 Weeks</p>
-                                <p class="text-[11px] text-gray-500 mt-1">Quote Calculated After Link & Weight Submission</p>
-                            </div>
                         </div>
-                    </div>
 
                     <!-- Live Fee Breakdown -->
                     <div x-show="sizeTier && estimatedPrice > 0" x-transition class="fee-card rounded-2xl p-5 mb-6">
@@ -903,7 +866,7 @@
                 estimatedPrice: '',
                 quantity: 1,
                 sizeTier: '',
-                shippingMethod: 'standard_air',
+                shippingMethod: '',
                 productWeight: '',
                 fetchingProduct: false,
                 productFetchResult: null,
@@ -1262,6 +1225,7 @@
                     if (!this.productUrl) return this.step1Error = 'Please enter a product URL.';
                     if (!this.estimatedPrice || this.estimatedPrice <= 0) return this.step1Error = 'Please enter the product price.';
                     if (!this.sizeTier) return this.step1Error = 'Please select a package size.';
+                    if (!this.shippingMethod) return this.step1Error = 'Please select a shipping method.';
                     if (!this.quantity || this.quantity < 1) return this.step1Error = 'Quantity must be at least 1.';
                     this.step = 3;
                 },
