@@ -194,7 +194,7 @@ class OrderController extends Controller
             ?? Setting::get('support_phone')
             ?? config('app.support_phone', '+1 (800) 555-0199');
 
-        $deliveryOptions$deliveryOptions = \Illuminate\Support\Facades\Schema::hasTable('delivery_options') ? \App\Models\DeliveryOption::where('is_active', true)->get() : collect();
+        $deliveryOptions = \Illuminate\Support\Facades\Schema::hasTable('delivery_options') ? \App\Models\DeliveryOption::where('is_active', true)->get() : collect();
         return view('order.index', compact('sizeFeeRules', 'feeRules', 'platforms', 'supportPhone', 'deliveryOptions'));
     }
 
