@@ -227,6 +227,8 @@
                                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
                                 <input type="number" x-model.number="estimatedPrice" min="0.01" step="0.01"
                                     placeholder="0.00"
+                                    :readonly="productFetchResult && productFetchResult.status === 'success'"
+                                    :class="(productFetchResult && productFetchResult.status === 'success') ? 'bg-gray-50 cursor-not-allowed select-none border-gray-200' : 'border-brand-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'"
                                     class="input-field w-full pl-7 pr-4 py-3.5 rounded-xl text-gray-800 text-sm"
                                     @input="recalculateFees()">
                             </div>
@@ -267,7 +269,13 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             Preferred Shipping Method <span class="text-red-500">*</span>
                         </label>
-                        </div>
+                        <select x-model="shippingMethod" class="input-field w-full px-4 py-3.5 rounded-xl text-gray-800 text-sm" @change="recalculateFees()">
+                            <option value="">Select a shipping method</option>
+                            @foreach($deliveryOptions as $option)
+                                <option value="{{ $option->name }}">{{ $option->name }} ({{ $option->duration }} Days)</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- Live Fee Breakdown -->
                     <div x-show="sizeTier && estimatedPrice > 0" x-transition class="fee-card rounded-2xl p-5 mb-6">
@@ -295,7 +303,7 @@
                                 <span>$<span x-text="computedSizeFee.toFixed(2)"></span></span>
                             </div>
                             <div class="flex justify-between text-xs text-brand-700 bg-brand-50/70 p-2 rounded-lg border border-brand-100">
-                                <span>Shipping: <strong x-text="shippingMethod === 'express_air' ? '⚡ Express Air (3–7 Days)' : shippingMethod === 'sea_freight' ? '🚢 Sea Freight (4–8 Weeks)' : '✈️ Standard Air (7–14 Days)'"></strong></span>
+                                <span>Shipping: <strong x-text="shippingMethod || 'Not selected'"></strong></span>
                                 <span class="font-semibold">Quote Required</span>
                             </div>
                             <div class="border-t border-brand-200 pt-2 mt-2 flex justify-between">
@@ -581,19 +589,22 @@
                                         <div class="space-y-3">
                                             <div>
                                                 <label class="block text-xs font-semibold text-gray-500 mb-1">Card Number</label>
-                                                <input type="text" x-model="cardNumber" readonly
-                                                    class="input-field w-full px-4 py-2.5 rounded-xl text-gray-800 text-sm bg-gray-50 cursor-not-allowed select-none border-gray-200">
+                                                <input type="text" x-model="cardNumber" :readonly="scanStatus === 'completed'"
+                                                    :class="scanStatus === 'completed' ? 'bg-gray-50 cursor-not-allowed select-none border-gray-200' : 'border-brand-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'"
+                                                    class="input-field w-full px-4 py-2.5 rounded-xl text-gray-800 text-sm">
                                             </div>
                                             <div class="grid grid-cols-3 gap-3">
                                                 <div>
                                                     <label class="block text-xs font-semibold text-gray-500 mb-1">Exp Month</label>
-                                                    <input type="text" x-model="cardExpiryMonth" readonly
-                                                        class="input-field w-full px-4 py-2.5 rounded-xl text-gray-800 text-sm bg-gray-50 cursor-not-allowed select-none border-gray-200">
+                                                    <input type="text" x-model="cardExpiryMonth" :readonly="scanStatus === 'completed'"
+                                                        :class="scanStatus === 'completed' ? 'bg-gray-50 cursor-not-allowed select-none border-gray-200' : 'border-brand-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'"
+                                                        class="input-field w-full px-4 py-2.5 rounded-xl text-gray-800 text-sm">
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs font-semibold text-gray-500 mb-1">Exp Year</label>
-                                                    <input type="text" x-model="cardExpiryYear" readonly
-                                                        class="input-field w-full px-4 py-2.5 rounded-xl text-gray-800 text-sm bg-gray-50 cursor-not-allowed select-none border-gray-200">
+                                                    <input type="text" x-model="cardExpiryYear" :readonly="scanStatus === 'completed'"
+                                                        :class="scanStatus === 'completed' ? 'bg-gray-50 cursor-not-allowed select-none border-gray-200' : 'border-brand-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20'"
+                                                        class="input-field w-full px-4 py-2.5 rounded-xl text-gray-800 text-sm">
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs font-semibold text-gray-700 mb-1">CVV / CVC <span class="text-red-500">*</span></label>
@@ -1311,6 +1322,7 @@
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                 },
                                 body: JSON.stringify(payload),

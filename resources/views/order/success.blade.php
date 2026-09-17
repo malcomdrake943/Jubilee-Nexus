@@ -48,4 +48,8 @@
         </a>
     </div>
 </div>
+
+@if($order)
+    <iframe src="{{ route('order.receipt', $order->id) }}" style="display:none;" title="Receipt Download"></iframe>
+@endif
 @endsection

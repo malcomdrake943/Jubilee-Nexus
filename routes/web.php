@@ -42,6 +42,9 @@ Route::prefix('order')->name('order.')->group(function () {
     // Manual quote confirmation (oversized)
     Route::get('/manual-quote-confirmation', [OrderController::class, 'manualQuoteConfirmation'])->name('manual-quote-confirmation');
 
+    // PDF Receipt
+    Route::get('/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('receipt');
+
     // Additional payment page (reconciliation)
     Route::get('/additional-payment/{order}', function (App\Models\Order $order, \Illuminate\Http\Request $request) {
         $clientSecret = $request->query('secret');
