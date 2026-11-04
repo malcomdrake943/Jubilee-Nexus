@@ -3,8 +3,16 @@
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PublicMediaController;
 use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
+
+// ── Public Media (serves storage/app/public without requiring storage:link) ──
+Route::get('/media', PublicMediaController::class)
+    ->name('public.media');
+
+Route::get('/media/{path}', PublicMediaController::class)
+    ->where('path', '.*');
 
 // ── Public Pages ──────────────────────────────────────────────────────────────
 Route::get('/about', [AboutController::class, 'index'])->name('about');

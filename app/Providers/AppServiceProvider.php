@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (! $this->app->runningInConsole()) {
+            $baseUrl = rtrim(request()->getBaseUrl(), '/');
+            config(['filesystems.disks.public.url' => $baseUrl . '/media?file=']);
+        }
     }
 }

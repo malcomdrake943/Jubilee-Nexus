@@ -37,6 +37,7 @@ class PlatformResource extends Resource
                     ->image()
                     ->disk('public')
                     ->directory('platforms')
+                    ->visibility('public')
                     ->required(),
                 Forms\Components\Toggle::make('is_active')
                     ->label('Is Active')
@@ -50,7 +51,11 @@ class PlatformResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('logo')
-                    ->disk('public'),
+                    ->disk('public')
+                    ->visibility('public')
+                    ->circular()
+                    ->extraImgAttributes(['class' => '!object-contain bg-white p-1'])
+                    ->checkFileExistence(false),
                 Tables\Columns\TextColumn::make('name')
                     ->sortable()
                     ->searchable(),
