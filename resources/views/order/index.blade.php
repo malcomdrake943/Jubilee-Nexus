@@ -917,8 +917,7 @@
             cardExpiryYear: '',
             cardCvc: '',
             scanPollInterval: null,
-            stripePublishableKey: '{{ config('
-            cashier.key ') }}',
+            stripePublishableKey: '{{ config("cashier.key") }}',
 
             // Fee data
             feeRules,
