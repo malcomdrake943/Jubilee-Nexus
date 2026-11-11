@@ -106,6 +106,39 @@ class PlatformLogoDisplayTest extends TestCase
         }
     }
 
+    public function test_platform_creation_fails_with_validation_error_when_storage_write_fails(): void
+    {
+        Storage::fake('public', [
+            'url' => config('filesystems.disks.public.url'),
+        ]);
+
+        // Simulate an unwritable public disk where put() fails silently (returns false)
+        $fakeDisk = \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+        $fakeDisk->shouldReceive('put')->once()->andReturn(false);
+
+        Storage::set('public', $fakeDisk);
+
+        $superAdmin = User::factory()->create([
+            'role' => 'superadmin',
+        ]);
+
+        $this->actingAs($superAdmin);
+
+        $uploadedLogo = UploadedFile::fake()->image('apple-logo.png', 120, 120);
+
+        Livewire::test(CreatePlatform::class)
+            ->fillForm([
+                'name' => 'Apple Store',
+                'url' => 'https://www.apple.com',
+                'logo' => $uploadedLogo,
+                'is_active' => true,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['logo']);
+
+        $this->assertDatabaseMissing('platforms', ['name' => 'Apple Store']);
+    }
+
     public function test_public_media_blocks_dotfiles_executable_extensions_and_traversal(): void
     {
         $this->get('/media?file=/.gitignore')->assertNotFound();

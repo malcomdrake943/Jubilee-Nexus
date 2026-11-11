@@ -44,7 +44,7 @@ return [
             'url' => '/media?file=',
             'visibility' => 'public',
             'throw' => false,
-            'report' => false,
+            'report' => true,
         ],
 
         's3' => [
