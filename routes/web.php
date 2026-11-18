@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\CjWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PublicMediaController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +20,19 @@ Route::get('/media/{path}', PublicMediaController::class)
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+
+// ── E-Commerce Store (CJdropshipping) ─────────────────────────────────────────
+Route::prefix('store')->name('store.')->group(function () {
+    Route::get('/', [StoreController::class, 'index'])->name('index');
+    Route::get('/products/{storeProduct}', [StoreController::class, 'show'])->name('show');
+    Route::post('/shipping', [StoreController::class, 'calculateShipping'])->name('shipping');
+    Route::post('/checkout/card', [StoreController::class, 'processCardCheckout'])->name('checkout.card');
+    Route::post('/checkout/mobile-money', [StoreController::class, 'processMobileMoneyCheckout'])->name('checkout.mobile-money');
+});
+
+Route::post('/webhooks/cjdropshipping', CjWebhookController::class)
+    ->name('webhooks.cjdropshipping')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
 
 // ── Redirect root to order form ──────────────────────────────────────────────
 Route::get('/', fn () => redirect()->route('order.index'));

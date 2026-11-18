@@ -9,6 +9,7 @@ use App\Notifications\OrderPurchasedNotification;
 use App\Notifications\OrderShippedNotification;
 use App\Notifications\OrderCancelledNotification;
 use App\Notifications\OrderDeliveredNotification;
+use App\Services\CjDropshippingService;
 use App\Services\FeeCalculatorService;
 use App\Services\ReconcilePaymentService;
 use Filament\Forms;
@@ -66,6 +67,8 @@ class OrderResource extends Resource
                 Forms\Components\TextInput::make('final_product_price')->prefix('$')->nullable()->disabled(),
                 Forms\Components\TextInput::make('service_fee')->prefix('$')->disabled(),
                 Forms\Components\TextInput::make('size_handling_fee')->prefix('$')->disabled(),
+                Forms\Components\TextInput::make('cj_shipping_cost')->label('Store Shipping')->prefix('$')->disabled(),
+                Forms\Components\TextInput::make('tax_amount')->label('Store Tax')->prefix('$')->disabled(),
                 Forms\Components\TextInput::make('total_charged')->prefix('$')->disabled(),
                 Forms\Components\Select::make('price_reconciliation_status')
                     ->options([
@@ -98,6 +101,16 @@ class OrderResource extends Resource
                     ->preload(),
                 Forms\Components\TextInput::make('tracking_carrier'),
                 Forms\Components\TextInput::make('tracking_number'),
+                Forms\Components\TextInput::make('cj_order_id')
+                    ->label('CJ Order ID')
+                    ->disabled(),
+                Forms\Components\TextInput::make('cj_order_status')
+                    ->label('CJ Status')
+                    ->disabled(),
+                Forms\Components\Textarea::make('cj_error_message')
+                    ->label('CJ Error')
+                    ->disabled()
+                    ->columnSpan(2),
             ])->columns(2),
         ]);
     }
@@ -125,6 +138,15 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('platform.name')
                     ->label('Platform')
                     ->sortable(),
+                Tables\Columns\BadgeColumn::make('cj_order_status')
+                    ->label('CJ Status')
+                    ->colors([
+                        'success' => 'paid',
+                        'info'    => 'created',
+                        'warning' => ['pending', 'pending_payment', 'pending_config'],
+                        'danger'  => 'failed',
+                    ])
+                    ->toggleable(),
                 Tables\Columns\BadgeColumn::make('source_platform')
                     ->colors(['primary' => 'amazon', 'warning' => 'ebay', 'gray' => 'other']),
                 Tables\Columns\BadgeColumn::make('size_tier'),
@@ -179,6 +201,25 @@ class OrderResource extends Resource
                     )),
             ])
             ->actions([
+                // Fulfill / Pay on CJdropshipping
+                Tables\Actions\Action::make('fulfill_on_cj')
+                    ->label('Fulfill on CJ')
+                    ->icon('heroicon-o-cube')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->visible(fn (Order $r) => filled($r->cj_vid) && ! in_array($r->cj_order_status, ['paid', 'shipped', 'delivered'], true))
+                    ->action(function (Order $record, CjDropshippingService $cjService) {
+                        $result = filled($record->cj_order_id)
+                            ? $cjService->confirmAndPayOrder($record)
+                            : $cjService->fulfillOrder($record);
+
+                        if ($result['success']) {
+                            Notification::make()->title('CJ Fulfillment Succeeded')->body($result['message'])->success()->send();
+                        } else {
+                            Notification::make()->title('CJ Fulfillment Failed')->body($result['message'])->danger()->send();
+                        }
+                    }),
+
                 // Mark Under Review
                 Tables\Actions\Action::make('mark_under_review')
                     ->label('Under Review')

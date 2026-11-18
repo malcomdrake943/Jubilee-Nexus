@@ -29,6 +29,12 @@ class DeliveryOptionResource extends Resource
                 Forms\Components\TextInput::make('duration')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('price')
+                    ->label('Shipping Price ($)')
+                    ->numeric()
+                    ->prefix('$')
+                    ->default(0)
+                    ->required(),
                 Forms\Components\Toggle::make('is_active')
                     ->required(),
             ]);
@@ -42,6 +48,10 @@ class DeliveryOptionResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('duration')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Price')
+                    ->formatStateUsing(fn ($state) => '$' . number_format((float) ($state ?? 0), 2))
+                    ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')

@@ -47,4 +47,14 @@ return [
         'server_key' => env('FCM_SERVER_KEY'),
     ],
 
+    'cjdropshipping' => [
+        'api_key'        => env('CJ_API_KEY'),
+        'api_secret'     => env('CJ_API_SECRET'),
+        'base_url'       => env('CJ_BASE_URL', 'https://developers.cjdropshipping.com/api2.0/v1'),
+        'markup_percent' => (float) env('CJ_DEFAULT_MARKUP_PERCENT', 25),
+        'auto_fulfill'   => filter_var(env('CJ_AUTO_FULFILL', true), FILTER_VALIDATE_BOOLEAN),
+        'auto_pay'       => filter_var(env('CJ_AUTO_PAY_BALANCE', true), FILTER_VALIDATE_BOOLEAN),
+        'webhook_secret' => env('CJ_WEBHOOK_SECRET'),
+    ],
+
 ];

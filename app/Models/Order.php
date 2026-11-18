@@ -13,6 +13,15 @@ class Order extends Model
 
     protected $fillable = [
         'platform_id',
+        'store_product_id',
+        'cj_pid',
+        'cj_vid',
+        'cj_order_id',
+        'cj_order_status',
+        'cj_logistic_name',
+        'cj_shipping_cost',
+        'tax_amount',
+        'cj_error_message',
         'order_number',
         'product_url',
         'product_name',
@@ -47,6 +56,8 @@ class Order extends Model
         'final_product_price'       => 'decimal:2',
         'service_fee'               => 'decimal:2',
         'size_handling_fee'         => 'decimal:2',
+        'cj_shipping_cost'          => 'decimal:2',
+        'tax_amount'                => 'decimal:2',
         'total_charged'             => 'decimal:2',
         'product_weight'            => 'decimal:2',
         'quantity'                  => 'integer',
@@ -57,6 +68,11 @@ class Order extends Model
     public function platform(): BelongsTo
     {
         return $this->belongsTo(Platform::class);
+    }
+
+    public function storeProduct(): BelongsTo
+    {
+        return $this->belongsTo(StoreProduct::class);
     }
 
     public function handler(): BelongsTo
