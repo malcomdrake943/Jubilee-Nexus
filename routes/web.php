@@ -24,6 +24,14 @@ Route::post('/contact', [ContactController::class, 'submit'])->name('contact.sub
 // ── E-Commerce Store (CJdropshipping) ─────────────────────────────────────────
 Route::prefix('store')->name('store.')->group(function () {
     Route::get('/', [StoreController::class, 'index'])->name('index');
+    Route::get('/cart', [StoreController::class, 'cart'])->name('cart');
+    Route::post('/cart/add', [StoreController::class, 'addToCart'])->name('cart.add');
+    Route::post('/cart/update', [StoreController::class, 'updateCart'])->name('cart.update');
+    Route::post('/cart/remove', [StoreController::class, 'removeFromCart'])->name('cart.remove');
+    Route::post('/cart/clear', [StoreController::class, 'clearCart'])->name('cart.clear');
+    Route::post('/cart/shipping', [StoreController::class, 'calculateCartShipping'])->name('cart.shipping');
+    Route::post('/cart/checkout/card', [StoreController::class, 'processCartCardCheckout'])->name('cart.checkout.card');
+    Route::post('/cart/checkout/mobile-money', [StoreController::class, 'processCartMobileMoneyCheckout'])->name('cart.checkout.mobile-money');
     Route::get('/products/{storeProduct}', [StoreController::class, 'show'])->name('show');
     Route::post('/shipping', [StoreController::class, 'calculateShipping'])->name('shipping');
     Route::post('/checkout/card', [StoreController::class, 'processCardCheckout'])->name('checkout.card');

@@ -10,16 +10,27 @@
         </div>
         <h1 class="text-3xl font-display font-bold text-gray-900 mb-3">Order Confirmed! 🎉</h1>
         @if($order)
-            <div class="inline-block bg-brand-50 border border-brand-200 rounded-xl px-5 py-2 mb-4">
-                <p class="text-brand-700 font-bold text-lg">{{ $order->order_number }}</p>
+            @php
+                $displayOrders = ($orders ?? collect())->isNotEmpty() ? $orders : collect([$order]);
+                $combinedTotal = (float) $displayOrders->sum('total_charged');
+            @endphp
+            <div class="flex flex-wrap justify-center gap-2 mb-4">
+                @foreach($displayOrders as $ord)
+                    <div class="inline-block bg-brand-50 border border-brand-200 rounded-xl px-4 py-2">
+                        <p class="text-brand-700 font-bold text-base">{{ $ord->order_number }}</p>
+                        @if($displayOrders->count() > 1 && $ord->product_name)
+                            <p class="text-[11px] text-gray-500 max-w-[160px] truncate">{{ $ord->product_name }} (×{{ $ord->quantity }})</p>
+                        @endif
+                    </div>
+                @endforeach
             </div>
             @if(str_starts_with($order->stripe_payment_intent_id ?? '', 'momo_'))
-                <p class="text-gray-600 mb-2">Order of <span class="font-bold text-gray-900">${{ number_format($order->total_charged, 2) }}</span> submitted.</p>
+                <p class="text-gray-600 mb-2">Order of <span class="font-bold text-gray-900">${{ number_format($combinedTotal, 2) }}</span> submitted.</p>
                 <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 text-xs text-amber-900 text-left">
                     <strong>Mobile Money Note:</strong> Please contact customer support at <strong>{{ config('app.support_phone', '+1 (800) 555-0199') }}</strong> to finalize your Mobile Money payment details if you haven't already.
                 </div>
             @else
-                <p class="text-gray-600 mb-2">Payment of <span class="font-bold text-gray-900">${{ number_format($order->total_charged, 2) }}</span> received.</p>
+                <p class="text-gray-600 mb-2">Payment of <span class="font-bold text-gray-900">${{ number_format($combinedTotal, 2) }}</span> received.</p>
             @endif
         @endif
         <p class="text-gray-500 text-sm mb-8">We've sent a confirmation email with your magic tracking link. Check your inbox at <strong>{{ $order?->customer_email }}</strong>.</p>

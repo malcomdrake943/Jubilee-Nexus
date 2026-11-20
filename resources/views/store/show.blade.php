@@ -124,6 +124,22 @@
                     </div>
                 </div>
 
+                <!-- Add to Cart Action -->
+                <div class="space-y-2">
+                    <button type="button" @click="addToCart()" :disabled="addingToCart"
+                        class="w-full py-3.5 px-5 rounded-2xl border-2 border-brand-600 bg-white hover:bg-brand-50 text-brand-700 font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                        <span x-text="addingToCart ? 'Adding to Cart...' : '🛒 Add to Cart'"></span>
+                    </button>
+
+                    <div x-show="cartFeedback" x-cloak
+                        class="bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 flex items-center justify-between gap-2 text-xs">
+                        <span class="text-green-800 font-semibold" x-text="'✓ ' + cartFeedback"></span>
+                        <a href="{{ route('store.cart') }}" class="text-brand-700 hover:text-brand-900 font-bold whitespace-nowrap">
+                            View Cart & Checkout →
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Shipping Options -->
                 <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200/70">
                     <div class="flex items-center justify-between mb-2">
@@ -316,9 +332,43 @@ function storeProductCheckout(productId, variants, images, fallbackShipping, ini
         stripePublishableKey: '{{ config("cashier.key") }}',
         submitting: false,
         checkoutError: '',
+        addingToCart: false,
+        cartFeedback: '',
 
         init() {
             this.fetchShipping();
+        },
+
+        async addToCart() {
+            this.addingToCart = true;
+            this.cartFeedback = '';
+            this.checkoutError = '';
+            try {
+                const res = await fetch('{{ route("store.cart.add") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        store_product_id: this.productId,
+                        vid: this.selectedVid,
+                        quantity: Math.max(1, parseInt(this.quantity || 1)),
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.message || data.error || 'Could not add item to cart.');
+                }
+                if (typeof window.updateNavCartCount === 'function') {
+                    window.updateNavCartCount(data.cart_count);
+                }
+                this.cartFeedback = data.message || 'Added to cart!';
+            } catch (err) {
+                this.checkoutError = err.message;
+            }
+            this.addingToCart = false;
         },
 
         currentVariant() {

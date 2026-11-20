@@ -492,11 +492,12 @@ class OrderController extends Controller
     public function success(Request $request): \Illuminate\View\View
     {
         $sessionId = $request->query('session_id');
-        $order     = Order::where('stripe_session_id', $sessionId)
+        $orders    = Order::where('stripe_session_id', $sessionId)
             ->orWhere('stripe_payment_intent_id', $sessionId)
-            ->first();
+            ->get();
+        $order     = $orders->first();
 
-        return view('order.success', compact('order'));
+        return view('order.success', compact('order', 'orders'));
     }
 
     public function cancel(): \Illuminate\View\View

@@ -154,8 +154,18 @@
                 <span class="text-white font-display font-bold text-xl tracking-tight">Jubilee <span class="gradient-text">Direct</span></span>
             </a>
             <div class="flex items-center gap-4">
+                @php
+                    $navCartCount = (int) collect(session('store_cart', []))->sum('quantity');
+                @endphp
                 <a href="{{ route('order.index') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Order</a>
-                <a href="{{ route('store.index') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors {{ request()->routeIs('store.*') ? 'text-white font-semibold' : '' }}">Store</a>
+                <a href="{{ route('store.index') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors {{ request()->routeIs('store.index') || request()->routeIs('store.show') ? 'text-white font-semibold' : '' }}">Store</a>
+                <a href="{{ route('store.cart') }}" class="inline-flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors {{ request()->routeIs('store.cart') ? 'text-white font-semibold' : '' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span>Cart</span>
+                    <span id="nav-cart-count" class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold {{ $navCartCount > 0 ? 'bg-amber-500 text-white' : 'bg-white/15 text-white/80' }}">{{ $navCartCount }}</span>
+                </a>
                 <a href="{{ route('about') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">About Us</a>
                 <a href="{{ route('contact') }}" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Contact Us</a>
                 <a href="#" onclick="document.getElementById('resend-modal').classList.remove('hidden')" class="text-white/70 hover:text-white text-sm font-medium transition-colors">Track Order</a>
@@ -214,5 +224,20 @@
         </div>
     </footer>
 
+    <script>
+        window.updateNavCartCount = function(count) {
+            const el = document.getElementById('nav-cart-count');
+            if (!el) return;
+            const parsed = Math.max(0, parseInt(count || 0, 10));
+            el.textContent = parsed;
+            if (parsed > 0) {
+                el.classList.remove('bg-white/15', 'text-white/80');
+                el.classList.add('bg-amber-500', 'text-white');
+            } else {
+                el.classList.remove('bg-amber-500', 'text-white');
+                el.classList.add('bg-white/15', 'text-white/80');
+            }
+        };
+    </script>
 </body>
 </html>

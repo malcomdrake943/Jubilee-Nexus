@@ -583,4 +583,169 @@ class CjStoreIntegrationTest extends TestCase
             ->assertOk()
             ->assertSee('Table Render Check Product');
     }
+
+    public function test_shopping_cart_add_update_remove_shipping_and_multi_item_checkout_fulfills_all_orders(): void
+    {
+        Setting::set('cj_api_key', 'CJUser@api@cartkey');
+        Setting::set('store_tax_percent', '10');
+        Setting::set('store_tax_flat', '2.00');
+        Setting::set('cj_auto_fulfill', '1');
+        Setting::set('cj_auto_pay', '1');
+
+        Http::fake([
+            '*/authentication/getAccessToken' => Http::response([
+                'code'   => 200,
+                'result' => true,
+                'data'   => [
+                    'accessToken'           => 'cj-token-cart',
+                    'accessTokenExpiryDate' => now()->addDays(15)->toIso8601String(),
+                ],
+            ], 200),
+            '*/logistic/freightCalculate' => Http::response([
+                'code'   => 200,
+                'result' => true,
+                'data'   => [
+                    [
+                        'logisticName'  => 'CJPacket Ordinary',
+                        'logisticPrice' => 11.00,
+                        'logisticAging' => '7-12 Days',
+                    ],
+                ],
+            ], 200),
+            '*/shopping/order/createOrderV2' => Http::sequence()
+                ->push([
+                    'code'   => 200,
+                    'result' => true,
+                    'data'   => ['orderId' => 'CJ-CART-ORD-1'],
+                ], 200)
+                ->push([
+                    'code'   => 200,
+                    'result' => true,
+                    'data'   => ['orderId' => 'CJ-CART-ORD-2'],
+                ], 200),
+        ]);
+
+        $earbuds = StoreProduct::create([
+            'cj_pid'        => 'PID-CART-1',
+            'cj_vid'        => 'VID-CART-1A',
+            'name'          => 'Pro Wireless Earbuds',
+            'cj_cost_price' => 12.00,
+            'retail_price'  => 20.00,
+            'variants'      => [
+                ['vid' => 'VID-CART-1A', 'name' => 'Matte Black', 'retail_price' => 20.00, 'weight_grams' => 200],
+                ['vid' => 'VID-CART-1B', 'name' => 'Snow White', 'retail_price' => 22.00, 'weight_grams' => 200],
+            ],
+            'is_active'     => true,
+        ]);
+
+        $lamp = StoreProduct::create([
+            'cj_pid'        => 'PID-CART-2',
+            'cj_vid'        => 'VID-CART-2',
+            'name'          => 'Foldable Desk Lamp',
+            'cj_cost_price' => 15.00,
+            'retail_price'  => 30.00,
+            'is_active'     => true,
+        ]);
+
+        $removable = StoreProduct::create([
+            'cj_pid'        => 'PID-CART-3',
+            'cj_vid'        => 'VID-CART-3',
+            'name'          => 'Temporary Cart Item',
+            'cj_cost_price' => 5.00,
+            'retail_price'  => 10.00,
+            'is_active'     => true,
+        ]);
+
+        // Add variant B of earbuds (x1), lamp (x1), and temporary item (x1)
+        $this->postJson(route('store.cart.add'), [
+            'store_product_id' => $earbuds->id,
+            'vid'              => 'VID-CART-1B',
+            'quantity'         => 1,
+        ])->assertOk()->assertJsonPath('cart_count', 1);
+
+        $this->postJson(route('store.cart.add'), [
+            'store_product_id' => $lamp->id,
+            'quantity'         => 1,
+        ])->assertOk()->assertJsonPath('cart_count', 2);
+
+        $this->postJson(route('store.cart.add'), [
+            'store_product_id' => $removable->id,
+            'quantity'         => 1,
+        ])->assertOk()->assertJsonPath('cart_count', 3);
+
+        // Update earbuds variant B quantity to 2 (2 * $22 = $44)
+        $this->postJson(route('store.cart.update'), [
+            'key'      => "{$earbuds->id}:VID-CART-1B",
+            'quantity' => 2,
+        ])->assertOk()->assertJsonPath('cart_count', 4);
+
+        // Remove temporary item (cart_count returns to 3: 2 earbuds + 1 lamp; subtotal = $44 + $30 = $74)
+        $this->postJson(route('store.cart.remove'), [
+            'key' => "{$removable->id}:VID-CART-3",
+        ])->assertOk()
+            ->assertJsonPath('cart_count', 3)
+            ->assertJsonPath('subtotal', 74);
+
+        $cartPage = $this->get(route('store.cart'));
+        $cartPage->assertOk()
+            ->assertSee('Pro Wireless Earbuds')
+            ->assertSee('Snow White')
+            ->assertSee('Foldable Desk Lamp');
+
+        // Calculate combined cart shipping & tax ($74 subtotal -> 10% + $2 flat = $9.40 tax; CJ freight $11)
+        $shippingQuote = $this->postJson(route('store.cart.shipping'), [
+            'country' => 'United States',
+        ]);
+        $shippingQuote->assertOk()
+            ->assertJsonPath('subtotal', 74)
+            ->assertJsonPath('tax_amount', 9.4)
+            ->assertJsonPath('shipping_options.0.logisticName', 'CJPacket Ordinary')
+            ->assertJsonPath('shipping_options.0.logisticPrice', 11);
+
+        // Complete multi-item Card Checkout ($74 + $11 + $9.40 = $94.40)
+        $checkout = $this->postJson(route('store.cart.checkout.card'), [
+            'logistic_name'     => 'CJPacket Ordinary',
+            'shipping_cost'     => 11.00,
+            'payment_method_id' => 'pm_mock_cart_test',
+            'customer_name'     => 'Marcus Buyer',
+            'customer_email'    => 'marcus@example.com',
+            'customer_phone'    => '+15553334444',
+            'shipping_address'  => [
+                'line1'       => '742 Evergreen Terrace',
+                'city'        => 'Springfield',
+                'state'       => 'OR',
+                'postal_code' => '97477',
+                'country'     => 'United States',
+            ],
+        ]);
+
+        $checkout->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('total_charged', 94.4);
+
+        $orders = Order::where('customer_email', 'marcus@example.com')->orderBy('id')->get();
+        $this->assertCount(2, $orders);
+        $this->assertEquals(94.40, round((float) $orders->sum('total_charged'), 2));
+        $this->assertSame('Pro Wireless Earbuds (Snow White)', $orders[0]->product_name);
+        $this->assertSame('VID-CART-1B', $orders[0]->cj_vid);
+        $this->assertSame(2, $orders[0]->quantity);
+        $this->assertSame('CJ-CART-ORD-1', $orders[0]->cj_order_id);
+        $this->assertSame('paid', $orders[0]->cj_order_status);
+
+        $this->assertSame('Foldable Desk Lamp', $orders[1]->product_name);
+        $this->assertSame('VID-CART-2', $orders[1]->cj_vid);
+        $this->assertSame(1, $orders[1]->quantity);
+        $this->assertSame('CJ-CART-ORD-2', $orders[1]->cj_order_id);
+        $this->assertSame('paid', $orders[1]->cj_order_status);
+
+        // Verify cart cleared and confirmation page renders both orders + combined total
+        $this->assertEmpty(session('store_cart'));
+
+        $redirectUrl = $checkout->json('redirect');
+        $this->get($redirectUrl)
+            ->assertOk()
+            ->assertSee($orders[0]->order_number)
+            ->assertSee($orders[1]->order_number)
+            ->assertSee('$94.40');
+    }
 }

@@ -289,19 +289,50 @@ class CjDropshippingService
         int $quantity = 1,
         string $startCountryCode = 'CN'
     ): array {
+        if (blank($vid)) {
+            return $this->fallbackDeliveryOptions();
+        }
+
+        return $this->calculateFreightForProducts(
+            $endCountryCode,
+            [
+                [
+                    'vid'      => $vid,
+                    'quantity' => max(1, $quantity),
+                ],
+            ],
+            $startCountryCode
+        );
+    }
+
+    /**
+     * Calculate shipping methods & costs via CJ Logistics API for one or more product variants.
+     *
+     * @param  array<int, array{vid: string, quantity: int}>  $productsPayload
+     * @return array<int, array{logisticName: string, logisticPrice: float, logisticAging: string}>
+     */
+    public function calculateFreightForProducts(
+        string $endCountryCode,
+        array $productsPayload,
+        string $startCountryCode = 'CN'
+    ): array {
         $countryCode = $this->normalizeCountryCode($endCountryCode);
 
-        if ($this->isConfigured() && filled($vid)) {
+        $filteredPayload = collect($productsPayload)
+            ->filter(fn ($row) => is_array($row) && filled($row['vid'] ?? null))
+            ->map(fn ($row) => [
+                'vid'      => (string) $row['vid'],
+                'quantity' => max(1, (int) ($row['quantity'] ?? 1)),
+            ])
+            ->values()
+            ->all();
+
+        if ($this->isConfigured() && ! empty($filteredPayload)) {
             try {
                 $response = $this->authorizedClient()->post('/logistic/freightCalculate', [
                     'startCountryCode' => strtoupper($startCountryCode),
                     'endCountryCode'   => $countryCode,
-                    'products'         => [
-                        [
-                            'vid'      => $vid,
-                            'quantity' => max(1, $quantity),
-                        ],
-                    ],
+                    'products'         => $filteredPayload,
                 ]);
 
                 $data = $this->unwrapResponse($response->json(), 'Freight calculation failed');
@@ -319,14 +350,113 @@ class CjDropshippingService
                 }
             } catch (\Throwable $e) {
                 Log::warning('CJ freight calculation fallback triggered', [
-                    'vid'     => $vid,
-                    'country' => $countryCode,
-                    'error'   => $e->getMessage(),
+                    'products' => $filteredPayload,
+                    'country'  => $countryCode,
+                    'error'    => $e->getMessage(),
                 ]);
             }
         }
 
         return $this->fallbackDeliveryOptions();
+    }
+
+    /**
+     * Calculate combined shipping options for a shopping cart of hydrated items.
+     *
+     * @param  array<int, array{product: StoreProduct, vid: ?string, quantity: int, subtotal: float}>  $hydratedCartItems
+     * @return array<int, array{logisticName: string, logisticPrice: float, logisticAging: string}>
+     */
+    public function calculateCartShippingOptions(array $hydratedCartItems, string $country): array
+    {
+        $customTotal = 0.0;
+        $cjPayload = [];
+        $hasNonCustomItem = false;
+        $startCountryCode = 'CN';
+
+        foreach ($hydratedCartItems as $item) {
+            /** @var StoreProduct $product */
+            $product = $item['product'];
+            if ($product->custom_shipping_price !== null) {
+                $customTotal += max(0, (float) $product->custom_shipping_price);
+                continue;
+            }
+
+            if (! $hasNonCustomItem && filled($product->source_country_code)) {
+                $startCountryCode = (string) $product->source_country_code;
+            }
+            $hasNonCustomItem = true;
+
+            $vid = $item['vid'] ?? $product->cj_vid;
+            if (filled($vid)) {
+                $cjPayload[] = [
+                    'vid'      => (string) $vid,
+                    'quantity' => max(1, (int) ($item['quantity'] ?? 1)),
+                ];
+            }
+        }
+
+        if (! $hasNonCustomItem) {
+            $customPrice = round($customTotal, 2);
+
+            return collect($this->fallbackDeliveryOptions())
+                ->map(fn ($opt) => [
+                    'logisticName'  => $opt['logisticName'],
+                    'logisticPrice' => $customPrice,
+                    'logisticAging' => $opt['logisticAging'],
+                ])
+                ->all();
+        }
+
+        $options = ! empty($cjPayload)
+            ? $this->calculateFreightForProducts($country, $cjPayload, $startCountryCode)
+            : $this->fallbackDeliveryOptions();
+
+        if ($customTotal > 0) {
+            return collect($options)
+                ->map(fn ($opt) => [
+                    'logisticName'  => $opt['logisticName'],
+                    'logisticPrice' => round((float) $opt['logisticPrice'] + $customTotal, 2),
+                    'logisticAging' => $opt['logisticAging'],
+                ])
+                ->all();
+        }
+
+        return $options;
+    }
+
+    /**
+     * Calculate combined tax amount for all items in a shopping cart.
+     *
+     * @param  array<int, array{product: StoreProduct, vid: ?string, quantity: int, subtotal: float}>  $hydratedCartItems
+     */
+    public function calculateCartTaxAmount(array $hydratedCartItems): float
+    {
+        $totalTax = 0.0;
+        $usesGlobalTax = false;
+        $globalPercent = $this->getStoreTaxPercent();
+        $globalFlat = $this->getStoreTaxFlat();
+
+        foreach ($hydratedCartItems as $item) {
+            /** @var StoreProduct $product */
+            $product = $item['product'];
+            $subtotal = (float) ($item['subtotal'] ?? 0);
+            $quantity = max(1, (int) ($item['quantity'] ?? 1));
+
+            if ($product->custom_tax_amount !== null) {
+                $totalTax += max(0, (float) $product->custom_tax_amount * $quantity);
+            } elseif ($product->tax_percent !== null) {
+                $totalTax += max(0, $subtotal * ((float) $product->tax_percent / 100));
+            } else {
+                $totalTax += max(0, $subtotal * ($globalPercent / 100));
+                $usesGlobalTax = true;
+            }
+        }
+
+        if ($usesGlobalTax && $globalFlat > 0) {
+            $totalTax += $globalFlat;
+        }
+
+        return round(max(0, $totalTax), 2);
     }
 
     /**

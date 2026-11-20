@@ -91,11 +91,11 @@
             </div>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            x-data="storeCatalogCart()">
             @foreach($products as $product)
-                <a href="{{ route('store.show', $product) }}"
-                    class="glass-light rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group flex flex-col justify-between border border-white/40 hover:-translate-y-1">
-                    <div>
+                <div class="glass-light rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group flex flex-col justify-between border border-white/40 hover:-translate-y-1">
+                    <a href="{{ route('store.show', $product) }}" class="block">
                         <div class="aspect-square bg-white relative overflow-hidden flex items-center justify-center p-4">
                             @if($product->display_image_url)
                                 <img src="{{ $product->display_image_url }}" alt="{{ $product->name }}"
@@ -110,30 +110,93 @@
                             @endif
                         </div>
 
-                        <div class="p-5">
+                        <div class="p-5 pb-3">
                             @if($product->category_name)
                                 <p class="text-[11px] font-bold uppercase tracking-wider text-brand-500 mb-1">
                                     {{ $product->category_name }}
                                 </p>
                             @endif
-                            <h3 class="font-display font-bold text-gray-900 text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
+                            <h3 class="font-display font-bold text-gray-900 text-sm leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-brand-600 transition-colors">
                                 {{ $product->name }}
                             </h3>
                         </div>
-                    </div>
+                    </a>
 
-                    <div class="px-5 pb-5 pt-2 flex items-center justify-between border-t border-gray-200/60 mt-auto">
-                        <div>
-                            <p class="text-[11px] text-gray-500 font-medium">Price</p>
-                            <p class="text-lg font-extrabold text-brand-700">${{ number_format((float) $product->retail_price, 2) }}</p>
+                    <div class="px-5 pb-5 pt-3 border-t border-gray-200/60 mt-auto space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[11px] text-gray-500 font-medium">Price</p>
+                                <p class="text-lg font-extrabold text-brand-700">${{ number_format((float) $product->retail_price, 2) }}</p>
+                            </div>
+                            <a href="{{ route('store.show', $product) }}" class="text-xs font-semibold text-brand-600 hover:text-brand-800">
+                                Buy Now →
+                            </a>
                         </div>
-                        <span class="btn-primary text-white text-xs font-bold px-4 py-2.5 rounded-xl">
-                            Buy Now →
-                        </span>
+
+                        <button type="button"
+                            @click="add({{ $product->id }}, {{ json_encode($product->cj_vid) }})"
+                            :disabled="addingId === {{ $product->id }}"
+                            class="btn-primary w-full text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 disabled:opacity-60">
+                            <span x-text="addingId === {{ $product->id }} ? 'Adding...' : (addedId === {{ $product->id }} ? '✓ Added to Cart' : '🛒 Add to Cart')"></span>
+                        </button>
                     </div>
-                </a>
+                </div>
             @endforeach
+
+            <!-- Floating Add-to-Cart Toast -->
+            <div x-show="toastMessage" x-cloak
+                class="fixed bottom-6 right-6 z-50 glass-light rounded-2xl shadow-2xl border border-brand-200 px-5 py-4 flex items-center gap-4 max-w-sm animate-slide-up">
+                <div class="text-2xl">🛒</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-gray-900 truncate" x-text="toastMessage"></p>
+                    <a href="{{ route('store.cart') }}" class="text-xs font-bold text-brand-600 hover:text-brand-800">
+                        View Cart & Checkout →
+                    </a>
+                </div>
+                <button type="button" @click="toastMessage = ''" class="text-gray-400 hover:text-gray-600 text-xs font-bold">✕</button>
+            </div>
         </div>
+
+        <script>
+        function storeCatalogCart() {
+            return {
+                addingId: null,
+                addedId: null,
+                toastMessage: '',
+                toastTimer: null,
+                async add(productId, vid) {
+                    this.addingId = productId;
+                    try {
+                        const res = await fetch('{{ route("store.cart.add") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({
+                                store_product_id: productId,
+                                vid: vid || null,
+                                quantity: 1,
+                            }),
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            window.updateNavCartCount(data.cart_count);
+                            this.addedId = productId;
+                            this.toastMessage = data.message || 'Added to cart!';
+                            if (this.toastTimer) clearTimeout(this.toastTimer);
+                            this.toastTimer = setTimeout(() => {
+                                this.toastMessage = '';
+                                if (this.addedId === productId) this.addedId = null;
+                            }, 3500);
+                        }
+                    } catch {}
+                    this.addingId = null;
+                }
+            };
+        }
+        </script>
 
         <div class="mt-8">
             {{ $products->links() }}
